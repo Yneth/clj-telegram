@@ -1,12 +1,14 @@
 (ns clj-telegram.core
-  (:require [org.httpkit.client :as http]
-            [clojure.string :as cstr]
+  (:require [clojure.string :as cstr]
             [clojure.data.json :as cjson]))
 
 (def api-url "https://api.telegram.org/bot")
 
+(def http-post-f
+  (delay
+    (ns-resolve 'org.httpkit.client (symbol "post"))))
 (defn http-post [& args]
-  @(apply http/post args))
+  @(apply @http-post-f args))
 
 (defn- request [token action data]
   (let [url      (str api-url token "/" action)
