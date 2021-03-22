@@ -7,5 +7,5 @@
   :repl-options {:init-ns clj-telegram.core}
   :profiles {:provided
              {:dependencies
-              [[org.clojure/data.json "1.0.0"]
-               [http-kit "2.5.0"]]}})
+              [[clj-http "3.12.0"]
+               [cheshire "5.10.0"]]}})

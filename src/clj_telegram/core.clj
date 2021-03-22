@@ -1,20 +1,17 @@
 (ns clj-telegram.core
   (:require [clojure.string :as cstr]
-            [clojure.data.json :as cjson]))
+            [clj-http.client :as http]
+            [cheshire.core :as cheshire]))
 
 (def api-url "https://api.telegram.org/bot")
 
-(def http-post-f
-  (delay
-    (ns-resolve 'org.httpkit.client (symbol "post"))))
-(defn http-post [& args]
-  @(apply @http-post-f args))
-
+; investigate possibility of monkey patching http-client
+; using https://github.com/clojure-goes-fast/lazy-require
 (defn- request [token action data]
   (let [url      (str api-url token "/" action)
-        response (http-post url {:form-params data
+        response (http/post url {:form-params data
                                  :as          :text})
-        json     (cjson/read-str (:body response) :key-fn keyword)]
+        json     (cheshire/parse-string (:body response) keyword)]
     json))
 
 (defn get-me [token]
