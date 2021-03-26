@@ -7,23 +7,65 @@
 
 ; investigate possibility of monkey patching http-client
 ; using https://github.com/clojure-goes-fast/lazy-require
-(defn- request [token action data]
+(defn- request [token action data & [{:keys [multipart?]}]]
   (let [url      (str api-url token "/" action)
-        response (http/post url {:form-params data
-                                 :as          :text})
+        body     (if multipart?
+                   {:multipart (map
+                                 (fn [[n v]]
+                                   {:name    n
+                                    :content v})
+                                 data)}
+                   {:form-params data
+                    :as          :text})
+        response (http/post url body)
         json     (cheshire/parse-string (:body response) keyword)]
     json))
 
 (defn get-me [token]
   (request token "getMe" nil))
 
-(defn send-message [token chat-id text]
+(defn ->snake-case [obj]
+  (into
+    {}
+    (map (fn [[k v]] [(cstr/replace (name k) #"-" "_") v]))
+    obj))
+
+(defn send-message [token chat-id text
+                    & [{:keys [parse_mode
+                               entities
+                               disable-web-page-preview
+                               disable-notification
+                               reply-to-message-id
+                               allow-sending-without-reply
+                               reply-markup]
+                        :as   opts}]]
   (request
     token
     "sendMessage"
-    {:chat_id chat-id
-     :text    text})
+    (merge
+      {:chat_id chat-id
+       :text    text}
+      opts))
   true)
+
+(defn send-photo-file [token chat-id photo
+                       & [{:keys [caption
+                                  parse-mode
+                                  caption-entities
+                                  disable-notification
+                                  reply-to-message-id
+                                  allow-sending-without-reply
+                                  reply-markup]
+                           :as   opts}]]
+  (request
+    token
+    "sendPhoto"
+    (->snake-case
+      (merge
+        {:chat_id chat-id
+         :photo   photo}
+        opts))
+    {:multipart? true}))
 
 (defn delete-webhook [token & [drop-pending-updates]]
   (let [drop-pending-updates (or drop-pending-updates false)]
