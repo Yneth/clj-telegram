@@ -10,11 +10,8 @@
 (defn- request [token action data & [{:keys [multipart?]}]]
   (let [url      (str api-url token "/" action)
         body     (if multipart?
-                   {:multipart (map
-                                 (fn [[n v]]
-                                   {:name    n
-                                    :content v})
-                                 data)}
+                   (let [multipart-data (map (fn [[n v]] {:name n :content v}) data)]
+                     {:multipart multipart-data})
                    {:form-params data
                     :as          :text})
         response (http/post url body)
@@ -42,10 +39,11 @@
   (request
     token
     "sendMessage"
-    (merge
-      {:chat_id chat-id
-       :text    text}
-      opts))
+    (->snake-case
+      (merge
+        {:chat_id chat-id
+         :text    text}
+        opts)))
   true)
 
 (defn send-photo-file [token chat-id photo
