@@ -100,3 +100,19 @@
         [command string] (cstr/split text #" " 2)]
     (get-updates token (inc update-id))                     ; marking updates as processed
     [chat-id (or (second (first (filter #(= command (first %)) commands))) ["command not found"])]))
+
+(defn mk-client [bot-token & [chat-id]]
+  (let [set-token   (fn [f] (partial f bot-token))
+        set-chat-id (fn [f] (if chat-id (partial f chat-id) f))]
+    (fn [cmd & args]
+      (-> (case cmd
+            :set-webhook (-> set-webhook (set-token))
+            :get-webhook (-> get-webhook-info (set-token))
+            :delete-webhook (-> delete-webhook (set-token))
+            :get-updates (-> get-updates (set-token))
+            :process-update (-> process-update (set-token))
+            :send-message (-> send-message (set-token) (set-chat-id))
+            :get-me (-> get-me (set-token))
+            :send-photo (-> send-photo-file (set-token) (set-chat-id))
+            nil)
+          (apply args)))))
