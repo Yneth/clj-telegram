@@ -36,15 +36,8 @@
                                allow-sending-without-reply
                                reply-markup]
                         :as   opts}]]
-  (request
-    token
-    "sendMessage"
-    (->snake-case
-      (merge
-        {:chat_id chat-id
-         :text    text}
-        opts)))
-  true)
+  (let [opts (merge {:chat_id chat-id :text text} opts)]
+    (request token "sendMessage" (->snake-case opts))))
 
 (defn send-photo-file [token chat-id photo
                        & [{:keys [caption
@@ -54,23 +47,14 @@
                                   reply-to-message-id
                                   allow-sending-without-reply
                                   reply-markup]
-                           :as   opts}]]
-  (request
-    token
-    "sendPhoto"
-    (->snake-case
-      (merge
-        {:chat_id chat-id
-         :photo   photo}
-        opts))
-    {:multipart? true}))
+                           :as   data}]]
+  (let [opts (merge {:chat_id chat-id :photo photo} data)]
+    (request token "sendPhoto" (->snake-case opts) {:multipart? true})))
 
-(defn delete-webhook [token & [drop-pending-updates]]
-  (let [drop-pending-updates (or drop-pending-updates false)]
-    (request
-      token
-      "deleteWebhook"
-      {:drop_pending_updates drop-pending-updates})))
+(defn delete-webhook [token & {:keys [drop-pending-updates]
+                               :or   {drop-pending-updates false}
+                               :as   opts}]
+  (request token "deleteWebhook" (->snake-case opts)))
 
 (defn get-webhook-info [token]
   (request token "getWebhookInfo" nil))
@@ -79,12 +63,12 @@
 (defn set-webhook [token
                    {:keys [url
                            certificate
-                           ip_address
-                           max_connections
-                           allowed_updates
-                           drop_pending_updates]
+                           ip-address
+                           max-connections
+                           allowed-updates
+                           drop-pending-updates]
                     :as   data}]
-  (request token "setWebhook" data))
+  (request token "setWebhook" (->snake-case data)))
 
 (defn get-updates
   ([token] (request token "getUpdates" nil))
