@@ -59,7 +59,6 @@
 (defn get-webhook-info [token]
   (request token "getWebhookInfo" nil))
 
-; https://core.telegram.org/bots/api#setwebhook
 (defn set-webhook [token
                    {:keys [url
                            certificate
@@ -68,20 +67,13 @@
                            allowed-updates
                            drop-pending-updates]
                     :as   data}]
+  "For more detailed documentation see
+   https://core.telegram.org/bots/api#setwebhook"
   (request token "setWebhook" (->snake-case data)))
 
 (defn get-updates
   ([token] (request token "getUpdates" nil))
   ([token offset] (request token "getUpdates" {:offset offset :limit 1})))
-
-(defn process-update [token update commands]
-  (let [m         (:message update)
-        chat-id   (-> m :chat :id)
-        text      ((or (-> m :text) (-> m :chat :type)))    ; workaround to deal with group type messages
-        update-id (:update_id update)
-        [command string] (cstr/split text #" " 2)]
-    (get-updates token (inc update-id))                     ; marking updates as processed
-    [chat-id (or (second (first (filter #(= command (first %)) commands))) ["command not found"])]))
 
 (defn mk-client [bot-token & [chat-id]]
   (let [set-token   (fn [f] (partial f bot-token))
@@ -92,7 +84,6 @@
             :get-webhook (-> get-webhook-info (set-token))
             :delete-webhook (-> delete-webhook (set-token))
             :get-updates (-> get-updates (set-token))
-            :process-update (-> process-update (set-token))
             :send-message (-> send-message (set-token) (set-chat-id))
             :get-me (-> get-me (set-token))
             :send-photo (-> send-photo-file (set-token) (set-chat-id))
