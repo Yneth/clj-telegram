@@ -71,6 +71,9 @@
    https://core.telegram.org/bots/api#setwebhook"
   (request token "setWebhook" (->snake-case data)))
 
+(defn delete-message [token {:keys [message-id chat-id] :as data}]
+  (request token "deleteMessage" (->snake-case data)))
+
 (defn get-updates
   ([token] (request token "getUpdates" nil))
   ([token offset] (request token "getUpdates" {:offset offset :limit 1})))
@@ -85,6 +88,7 @@
             :delete-webhook (-> delete-webhook (set-token))
             :get-updates (-> get-updates (set-token))
             :send-message (-> send-message (set-token) (set-chat-id))
+            :delete-message (-> delete-message (set-token))
             :get-me (-> get-me (set-token))
             :send-photo (-> send-photo-file (set-token) (set-chat-id))
             nil)
