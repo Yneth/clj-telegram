@@ -1,14 +1,39 @@
 # clj-telegram
 
-A Clojure library designed to ... well, that part is up to you.
+library to work with telegram bot API
 
 ## Usage
 
-FIXME
+Method usage
+```clojure
+(require '[clj-telegram.core :as tg])
+
+(def chat-id 123)
+(def token "token")
+
+(tg/send-message token chat-id "Hello there")
+```
+
+Client usage
+```clojure
+(require '[clj-telegram.core :as tg])
+
+(def chat-id 123)
+(def token "token")
+
+(def client 
+  (tg/mk-client token chat-id))
+  
+(client :send-message "Hello there")
+```
+
+## TODO
+* remove http client dependencies
+* remove json lib dependencies
 
 ## License
 
-Copyright © 2021 FIXME
+Copyright © 2022 yneth
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
